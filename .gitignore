@@ -1,0 +1,28 @@
+# Dependencies and Nx
+node_modules/
+.nx/
+.angular/
+dist/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Test artifacts
+test-results/
+playwright-report/

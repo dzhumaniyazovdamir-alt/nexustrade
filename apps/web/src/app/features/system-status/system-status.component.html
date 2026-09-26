@@ -1,0 +1,48 @@
+<section aria-labelledby="status-title">
+  <header class="page-header">
+    <p class="eyebrow">Infrastructure check</p>
+    <h1 id="status-title">Состояние NexusTrade</h1>
+    <p>Первый вертикальный срез проверяет путь Angular → NestJS → PostgreSQL.</p>
+  </header>
+
+  <mat-card appearance="outlined" aria-live="polite">
+    <mat-card-header>
+      <mat-card-title>Readiness</mat-card-title>
+      <mat-card-subtitle>API и обязательные зависимости</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @let status = viewState();
+      @switch (status.state) {
+        @case ('loading') {
+          <div class="state-row">
+            <mat-spinner diameter="28" />
+            <span>Проверяем доступность системы…</span>
+          </div>
+        }
+        @case ('ready') {
+          <div class="state-row state-row--success">
+            <span class="status-marker" aria-hidden="true"></span>
+            <div>
+              <strong>Система готова</strong>
+              <p>API и PostgreSQL отвечают штатно.</p>
+            </div>
+          </div>
+        }
+        @case ('error') {
+          <div class="state-row state-row--error" role="alert">
+            <span class="status-marker" aria-hidden="true"></span>
+            <div>
+              <strong>Система не готова</strong>
+              <p>{{ status.message }}</p>
+            </div>
+          </div>
+        }
+      }
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button matButton="filled" type="button" (click)="refresh()">Проверить снова</button>
+    </mat-card-actions>
+  </mat-card>
+</section>

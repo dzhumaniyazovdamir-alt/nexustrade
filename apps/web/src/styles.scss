@@ -1,0 +1,42 @@
+@use '@angular/material' as mat;
+
+:root {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --status-success: #176b3a;
+  --status-error: #b3261e;
+}
+
+html {
+  color-scheme: light dark;
+  min-width: 20rem;
+}
+
+body {
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  margin: 0;
+}
+
+button,
+a {
+  &:focus-visible {
+    outline: 0.1875rem solid var(--mat-sys-primary);
+    outline-offset: 0.125rem;
+  }
+}

@@ -1,0 +1,28 @@
+.app-toolbar {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.environment {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.app-content {
+  margin-inline: auto;
+  max-width: 72rem;
+  padding: clamp(var(--space-4), 5vw, var(--space-8));
+}
+
+@media (max-width: 32rem) {
+  .environment {
+    display: none;
+  }
+}

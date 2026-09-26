@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: nexustrade
+          POSTGRES_USER: nexustrade
+          POSTGRES_PASSWORD: nexustrade_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexustrade -d nexustrade"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      CI: 'true'
+      NX_DAEMON: 'false'
+      NODE_ENV: test
+      DATABASE_URL: postgresql://nexustrade:nexustrade_dev@localhost:5432/nexustrade
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.6.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit and component tests
+        run: pnpm test
+
+      - name: API integration tests
+        run: pnpm test:integration
+
+      - name: Production build
+        run: pnpm build

@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  margin-block-end: var(--space-8);
+
+  h1 {
+    font: var(--mat-sys-display-small);
+    margin: var(--space-2) 0;
+  }
+
+  p:last-child {
+    color: var(--mat-sys-on-surface-variant);
+    max-width: 42rem;
+  }
+}
+
+.eyebrow {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+mat-card {
+  max-width: 42rem;
+}
+
+mat-card-content {
+  min-height: 6rem;
+  padding-block: var(--space-6);
+}
+
+.state-row {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+
+  p {
+    margin: var(--space-2) 0 0;
+  }
+}
+
+.status-marker {
+  background: currentColor;
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.875rem;
+  width: 0.875rem;
+}
+
+.state-row--success {
+  color: var(--status-success);
+}
+
+.state-row--error {
+  color: var(--status-error);
+}
