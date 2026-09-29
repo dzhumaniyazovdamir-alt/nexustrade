@@ -1,11 +1,13 @@
 # Концептуальная модель данных
 
-На первом этапе фиксируется модель и соглашения, но бизнес-таблицы не создаются раньше соответствующих функциональных модулей.
+Migration `IdentityOrganizations` создаёт первые таблицы: `users`, `organizations`, `organization_memberships`, `refresh_token_families` и `organization_invitations`. Остальные бизнес-таблицы появляются только вместе с соответствующими функциональными модулями.
 
 ```mermaid
 erDiagram
     ORGANIZATION ||--o{ MEMBERSHIP : has
     USER ||--o{ MEMBERSHIP : joins
+    USER ||--o{ REFRESH_TOKEN_FAMILY : authenticates
+    ORGANIZATION ||--o{ ORGANIZATION_INVITATION : invites
     ORGANIZATION ||--o{ WAREHOUSE : owns
     ORGANIZATION ||--o{ PRODUCT : owns
     PRODUCT ||--o{ PRODUCT_VARIANT : contains

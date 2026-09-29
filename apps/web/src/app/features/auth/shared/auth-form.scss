@@ -1,0 +1,28 @@
+.auth-page {
+  display: grid;
+  min-height: calc(100vh - 10rem);
+  place-items: center;
+}
+
+mat-card {
+  max-width: 30rem;
+  width: 100%;
+}
+
+mat-card-content {
+  padding-top: var(--space-6);
+}
+
+form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.form-error {
+  color: var(--status-error);
+  margin: 0;
+}
+
+p {
+  margin-block-end: 0;
+}

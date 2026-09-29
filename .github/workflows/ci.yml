@@ -61,6 +61,9 @@ jobs:
       - name: Unit and component tests
         run: pnpm test
 
+      - name: Apply database migrations
+        run: pnpm db:migration:run
+
       - name: API integration tests
         run: pnpm test:integration
 

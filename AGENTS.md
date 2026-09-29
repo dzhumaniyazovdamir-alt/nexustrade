@@ -20,13 +20,16 @@ NexusTrade — учебная multi-tenant B2B-платформа управле
 - Workspace: Node.js 22, pnpm 12, Nx 22.
 - Backend: NestJS 11, TypeScript, TypeORM 0.3, PostgreSQL 17.
 - Frontend: Angular 21, RxJS, zoneless, Signals, Angular Material, SCSS.
+- Security: Argon2id passwords, short-lived access JWT and rotating refresh JWT in `httpOnly` cookies.
 - Infrastructure: Redis 8 и RabbitMQ 4 подготовлены в Compose; интеграция появится на профильных этапах.
 - Наблюдаемость и тестовые инструменты будут фиксироваться после их фактического подключения.
 
 ## Структура
 
 - `apps/api` — NestJS API; transport, common infrastructure, database и health-модули.
-- `apps/web` — standalone zoneless Angular-приложение.
+- `apps/api/src/identity` — регистрация, cookie sessions и refresh token families.
+- `apps/api/src/organizations` — tenants, memberships, RBAC и одноразовые invitations.
+- `apps/web` — standalone zoneless Angular-приложение с auth guards и Organizations UI.
 - `libs/shared/contracts` — transport-контракты без runtime-зависимостей от приложений.
 - `libs/shared/config` — типизированная валидация общей конфигурации.
 - `docs/adr` — принятые архитектурные решения.
@@ -60,7 +63,18 @@ pnpm db:migration:run
 pnpm db:migration:revert
 ```
 
-`synchronize` запрещён. Первая migration создаётся только вместе с реальными Identity/Organizations entities.
+`synchronize` запрещён. Первая migration `IdentityOrganizations` создаёт схему Identity/Organizations.
+
+Перед integration-тестами на чистой БД выполните `pnpm db:migration:run`.
+
+## Identity и tenant boundary
+
+- Регистрация атомарно создаёт user, organization и membership `owner`.
+- Роли membership: `owner`, `admin`, `member`; сервер проверяет membership для каждого URL с `organizationId`.
+- Последнего owner нельзя удалить или понизить.
+- Refresh token ротируется при каждом использовании; хранится только SHA-256 hash, reuse отзывает token family.
+- Invitation token одноразовый, ограничен по времени и хранится только как hash; SMTP пока не подключён.
+- State-changing запросы с auth cookies принимаются только с `WEB_ORIGIN`.
 
 ## Локальная инфраструктура
 

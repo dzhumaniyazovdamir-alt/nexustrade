@@ -1,0 +1,108 @@
+<header class="page-header">
+  <p class="eyebrow">Tenant management</p>
+  <h1>Организации и участники</h1>
+  <p>Выберите рабочее пространство, управляйте ролями и создавайте одноразовые приглашения.</p>
+</header>
+
+@if (error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<div class="layout">
+  <section>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>Организации</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <mat-form-field>
+          <mat-label>Активная организация</mat-label>
+          <mat-select
+            [value]="activeOrganizationId()"
+            (selectionChange)="selectOrganization($event.value)"
+          >
+            @for (organization of organizations(); track organization.id) {
+              <mat-option [value]="organization.id"
+                >{{ organization.name }} · {{ organization.role }}</mat-option
+              >
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <form class="inline-form" [formGroup]="createForm" (ngSubmit)="createOrganization()">
+          <mat-form-field>
+            <mat-label>Новая организация</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+          <button mat-stroked-button type="submit" [disabled]="createForm.invalid">Создать</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    @if (canManage()) {
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Пригласить участника</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <form class="inline-form" [formGroup]="inviteForm" (ngSubmit)="invite()">
+            <mat-form-field>
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Роль</mat-label>
+              <mat-select formControlName="role">
+                <mat-option value="member">member</mat-option>
+                <mat-option value="admin">admin</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="inviteForm.invalid">
+              Создать ссылку
+            </button>
+          </form>
+          @if (invitationLink(); as link) {
+            <div class="invitation" aria-live="polite">
+              <code>{{ link }}</code>
+              <button mat-button type="button" (click)="copyInvitation()">Копировать</button>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </section>
+
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Участники {{ activeOrganization()?.name }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="members">
+        @for (membership of members(); track membership.user.id) {
+          <article class="member">
+            <div>
+              <strong>{{ membership.user.displayName }}</strong>
+              <span>{{ membership.user.email }}</span>
+            </div>
+            @if (isOwner()) {
+              <mat-form-field subscriptSizing="dynamic">
+                <mat-label>Роль</mat-label>
+                <mat-select
+                  [value]="membership.role"
+                  (selectionChange)="changeRole(membership.user.id, $event.value)"
+                >
+                  <mat-option value="owner">owner</mat-option>
+                  <mat-option value="admin">admin</mat-option>
+                  <mat-option value="member">member</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-button type="button" (click)="removeMember(membership.user.id)">
+                Удалить
+              </button>
+            } @else {
+              <span>{{ membership.role }}</span>
+            }
+          </article>
+        } @empty {
+          <p>Участников пока нет.</p>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -7,6 +7,8 @@ import { randomUUID } from 'node:crypto';
 import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
 import { DatabaseModule } from '../database/database.module';
 import { HealthModule } from '../health/health.module';
+import { IdentityModule } from '../identity/identity.module';
+import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { HealthModule } from '../health/health.module';
     }),
     DatabaseModule,
     HealthModule,
+    IdentityModule,
+    OrganizationsModule,
   ],
   providers: [
     {

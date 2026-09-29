@@ -2,7 +2,7 @@
 
 NexusTrade — учебная multi-tenant B2B-платформа для управления каталогами, закупками, заказами, складскими остатками и доставкой.
 
-Первый этап создаёт воспроизводимый фундамент: Nx/pnpm monorepo, NestJS API, zoneless Angular 21 приложение, PostgreSQL, Redis и RabbitMQ.
+Реализованы фундамент и второй вертикальный этап: cookie-аутентификация, Organizations, membership RBAC и одноразовые invitation links.
 
 ## Быстрый старт
 
@@ -37,7 +37,13 @@ npx pnpm@12 infra:up
 npx pnpm@12 infra:down
 ```
 
-Команды миграций TypeORM подготовлены, но первая миграция появится вместе с модулем Identity/Organizations.
+Перед первым запуском API примените схему:
+
+```bash
+npx pnpm@12 db:migration:run
+```
+
+После регистрации пользователь становится `owner` новой организации. В разделе «Организации» доступны выбор tenant, управление участниками и создание invitation link в соответствии с ролью.
 
 ## Документация
 

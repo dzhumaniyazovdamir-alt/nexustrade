@@ -1,6 +1,16 @@
 <mat-toolbar class="app-toolbar">
-  <span class="brand">NexusTrade</span>
+  <a class="brand" routerLink="/">NexusTrade</a>
+  @if (auth.isAuthenticated()) {
+  <nav aria-label="Основная навигация">
+    <a mat-button routerLink="/">Статус</a>
+    <a mat-button routerLink="/organizations">Организации</a>
+  </nav>
+  <span class="toolbar-spacer"></span>
+  <span class="user-name">{{ auth.user()?.displayName }}</span>
+  <button mat-button type="button" (click)="logout()">Выйти</button>
+  } @else {
   <span class="environment">Development workspace</span>
+  }
 </mat-toolbar>
 
 <main class="app-content">
