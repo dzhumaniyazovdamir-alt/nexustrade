@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import type {
   ApiErrorResponse,
+  InvitationDto,
   MembershipDto,
   OrganizationDto,
   OrganizationRole,
@@ -29,6 +31,7 @@ type OrganizationWithRole = OrganizationDto & { role: OrganizationRole };
   selector: 'app-organizations',
   imports: [
     ReactiveFormsModule,
+    DatePipe,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -46,6 +49,7 @@ export class OrganizationsComponent implements OnInit {
   readonly activeOrganizationId = signal<string | null>(null);
   readonly members = signal<MembershipDto[]>([]);
   readonly invitationLink = signal<string | null>(null);
+  readonly invitations = signal<InvitationDto[]>([]);
   readonly error = signal<string | null>(null);
   readonly activeOrganization = computed(() =>
     this.organizations().find((organization) => organization.id === this.activeOrganizationId()),
@@ -68,6 +72,12 @@ export class OrganizationsComponent implements OnInit {
     }),
     role: new FormControl<'admin' | 'member'>('member', { nonNullable: true }),
   });
+  readonly renameForm = new FormGroup({
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2)],
+    }),
+  });
 
   async ngOnInit(): Promise<void> {
     await this.reloadOrganizations();
@@ -76,7 +86,20 @@ export class OrganizationsComponent implements OnInit {
   async selectOrganization(organizationId: string): Promise<void> {
     this.activeOrganizationId.set(organizationId);
     this.invitationLink.set(null);
-    await this.reloadMembers();
+    this.renameForm.setValue({ name: this.activeOrganization()?.name ?? '' });
+    await this.reloadOrganizationData();
+  }
+
+  async renameOrganization(): Promise<void> {
+    const organizationId = this.activeOrganizationId();
+    if (!organizationId || this.renameForm.invalid || !this.canManage()) return;
+    try {
+      await firstValueFrom(this.api.update(organizationId, this.renameForm.getRawValue()));
+      await firstValueFrom(this.auth.refreshSession());
+      await this.reloadOrganizations(organizationId);
+    } catch (error) {
+      this.setError(error);
+    }
   }
 
   async createOrganization(): Promise<void> {
@@ -100,6 +123,18 @@ export class OrganizationsComponent implements OnInit {
       );
       this.invitationLink.set(`${window.location.origin}/invite/${response.token}`);
       this.inviteForm.reset({ email: '', role: 'member' });
+      await this.reloadInvitations();
+    } catch (error) {
+      this.setError(error);
+    }
+  }
+
+  async revokeInvitation(invitationId: string): Promise<void> {
+    const organizationId = this.activeOrganizationId();
+    if (!organizationId) return;
+    try {
+      await firstValueFrom(this.api.revokeInvitation(organizationId, invitationId));
+      await this.reloadInvitations();
     } catch (error) {
       this.setError(error);
     }
@@ -139,9 +174,19 @@ export class OrganizationsComponent implements OnInit {
       const organizationId =
         preferredId ?? this.activeOrganizationId() ?? response.organizations[0]?.id ?? null;
       this.activeOrganizationId.set(organizationId);
-      if (organizationId) await this.reloadMembers();
+      this.renameForm.setValue({ name: this.activeOrganization()?.name ?? '' });
+      if (organizationId) await this.reloadOrganizationData();
     } catch (error) {
       this.setError(error);
+    }
+  }
+
+  private async reloadOrganizationData(): Promise<void> {
+    await this.reloadMembers();
+    if (this.canManage()) {
+      await this.reloadInvitations();
+    } else {
+      this.invitations.set([]);
     }
   }
 
@@ -153,6 +198,16 @@ export class OrganizationsComponent implements OnInit {
     }
     const response = await firstValueFrom(this.api.members(organizationId));
     this.members.set(response.memberships);
+  }
+
+  private async reloadInvitations(): Promise<void> {
+    const organizationId = this.activeOrganizationId();
+    if (!organizationId) {
+      this.invitations.set([]);
+      return;
+    }
+    const response = await firstValueFrom(this.api.invitations(organizationId));
+    this.invitations.set(response.invitations);
   }
 
   private setError(error: unknown): void {

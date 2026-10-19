@@ -37,6 +37,8 @@ NexusTrade — учебная multi-tenant B2B-платформа управле
 
 Направление зависимостей внутри backend: `transport → application → domain`; infrastructure реализует порты. Приложения могут зависеть от `scope:shared`, shared-библиотеки не зависят от приложений.
 
+Application services получают persistence через DI-токены `IDENTITY_REPOSITORY` и `ORGANIZATIONS_REPOSITORY`. `DataSource`, TypeORM entities, queries, locks и транзакции разрешены только в `infrastructure/*` adapters.
+
 ## Команды
 
 На машине без глобального pnpm используйте `npx pnpm@12.6.0` вместо `pnpm`.
@@ -73,7 +75,8 @@ pnpm db:migration:revert
 - Роли membership: `owner`, `admin`, `member`; сервер проверяет membership для каждого URL с `organizationId`.
 - Последнего owner нельзя удалить или понизить.
 - Refresh token ротируется при каждом использовании; хранится только SHA-256 hash, reuse отзывает token family.
-- Invitation token одноразовый, ограничен по времени и хранится только как hash; SMTP пока не подключён.
+- Angular interceptor дедуплицирует параллельный refresh после `401` и один раз повторяет исходные non-auth запросы.
+- Invitation token одноразовый, ограничен по времени и хранится только как hash; owner/admin видят и могут отзывать активные invitations. SMTP пока не подключён.
 - State-changing запросы с auth cookies принимаются только с `WEB_ORIGIN`.
 
 ## Локальная инфраструктура

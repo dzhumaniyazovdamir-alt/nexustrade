@@ -115,6 +115,10 @@ export interface CreateInvitationResponse {
   token: string;
 }
 
+export interface InvitationsResponse {
+  invitations: InvitationDto[];
+}
+
 export interface AcceptInvitationRequest {
   token: string;
 }

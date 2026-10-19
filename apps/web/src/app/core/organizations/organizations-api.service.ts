@@ -6,9 +6,11 @@ import type {
   CreateInvitationRequest,
   CreateInvitationResponse,
   CreateOrganizationRequest,
+  InvitationsResponse,
   MembershipsResponse,
   OrganizationResponse,
   OrganizationsResponse,
+  UpdateOrganizationRequest,
 } from '@nexustrade/contracts';
 
 @Injectable({ providedIn: 'root' })
@@ -23,6 +25,10 @@ export class OrganizationsApiService {
     return this.http.post<OrganizationResponse>('/api/v1/organizations', body);
   }
 
+  update(organizationId: string, body: UpdateOrganizationRequest) {
+    return this.http.patch<OrganizationResponse>(`/api/v1/organizations/${organizationId}`, body);
+  }
+
   members(organizationId: string) {
     return this.http.get<MembershipsResponse>(`/api/v1/organizations/${organizationId}/members`);
   }
@@ -31,6 +37,18 @@ export class OrganizationsApiService {
     return this.http.post<CreateInvitationResponse>(
       `/api/v1/organizations/${organizationId}/invitations`,
       body,
+    );
+  }
+
+  invitations(organizationId: string) {
+    return this.http.get<InvitationsResponse>(
+      `/api/v1/organizations/${organizationId}/invitations`,
+    );
+  }
+
+  revokeInvitation(organizationId: string, invitationId: string) {
+    return this.http.delete<void>(
+      `/api/v1/organizations/${organizationId}/invitations/${invitationId}`,
     );
   }
 

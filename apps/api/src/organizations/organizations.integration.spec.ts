@@ -48,6 +48,40 @@ describe('Organizations tenant boundary and RBAC', () => {
     expect(response.body.error.code).toBe('ORGANIZATION_ACCESS_DENIED');
   });
 
+  it('updates organization settings and revokes an active invitation', async () => {
+    const updated = await owner
+      .patch(`/api/v1/organizations/${ownerOrganizationId}`)
+      .set('Origin', origin)
+      .send({ name: 'Renamed Owner Tenant' })
+      .expect(200);
+    expect(updated.body.organization.name).toBe('Renamed Owner Tenant');
+
+    const created = await owner
+      .post(`/api/v1/organizations/${ownerOrganizationId}/invitations`)
+      .set('Origin', origin)
+      .send({ email: `revoked-${suffix}@example.com`, role: 'admin' })
+      .expect(201);
+    const invitations = await owner
+      .get(`/api/v1/organizations/${ownerOrganizationId}/invitations`)
+      .expect(200);
+    expect(invitations.body.invitations).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: created.body.invitation.id })]),
+    );
+
+    await owner
+      .delete(
+        `/api/v1/organizations/${ownerOrganizationId}/invitations/${created.body.invitation.id}`,
+      )
+      .set('Origin', origin)
+      .expect(204);
+    const afterRevoke = await owner
+      .get(`/api/v1/organizations/${ownerOrganizationId}/invitations`)
+      .expect(200);
+    expect(afterRevoke.body.invitations).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: created.body.invitation.id })]),
+    );
+  });
+
   it('creates and accepts a single-use invitation', async () => {
     const invitation = await owner
       .post(`/api/v1/organizations/${ownerOrganizationId}/invitations`)

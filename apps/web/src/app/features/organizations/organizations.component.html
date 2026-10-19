@@ -27,6 +27,18 @@
           </mat-select>
         </mat-form-field>
 
+        @if (canManage()) {
+          <form class="inline-form" [formGroup]="renameForm" (ngSubmit)="renameOrganization()">
+            <mat-form-field>
+              <mat-label>Название организации</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <button mat-stroked-button type="submit" [disabled]="renameForm.invalid">
+              Сохранить название
+            </button>
+          </form>
+        }
+
         <form class="inline-form" [formGroup]="createForm" (ngSubmit)="createOrganization()">
           <mat-form-field>
             <mat-label>Новая организация</mat-label>
@@ -61,6 +73,24 @@
             <div class="invitation" aria-live="polite">
               <code>{{ link }}</code>
               <button mat-button type="button" (click)="copyInvitation()">Копировать</button>
+            </div>
+          }
+          @if (invitations().length) {
+            <div class="invitations">
+              <h3>Активные приглашения</h3>
+              @for (invitation of invitations(); track invitation.id) {
+                <article class="invitation-row">
+                  <div>
+                    <strong>{{ invitation.email }}</strong>
+                    <span>
+                      {{ invitation.role }} · до {{ invitation.expiresAt | date: 'medium' }}
+                    </span>
+                  </div>
+                  <button mat-button type="button" (click)="revokeInvitation(invitation.id)">
+                    Отозвать
+                  </button>
+                </article>
+              }
             </div>
           }
         </mat-card-content>

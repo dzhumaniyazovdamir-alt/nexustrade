@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import type {
   CreateInvitationResponse,
+  InvitationsResponse,
   MembershipsResponse,
   OrganizationResponse,
   OrganizationsResponse,
@@ -103,6 +104,15 @@ export class OrganizationsController {
       body.email,
       body.role,
     );
+  }
+
+  @Get(':organizationId/invitations')
+  @UseGuards(OrganizationAccessGuard)
+  @OrganizationRoles('owner', 'admin')
+  async invitations(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+  ): Promise<InvitationsResponse> {
+    return { invitations: await this.organizationsService.listInvitations(organizationId) };
   }
 
   @Delete(':organizationId/invitations/:invitationId')
