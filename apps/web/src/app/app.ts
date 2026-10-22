@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule } from '@angular/router';
 import { AuthSessionService } from './core/auth/auth-session.service';
+import { OrganizationContextService } from './core/organizations/organization-context.service';
 
 @Component({
   imports: [MatButtonModule, MatToolbarModule, RouterModule],
@@ -12,6 +13,7 @@ import { AuthSessionService } from './core/auth/auth-session.service';
 })
 export class App {
   readonly auth = inject(AuthSessionService);
+  readonly organizationContext = inject(OrganizationContextService);
   private readonly router = inject(Router);
 
   async logout(): Promise<void> {

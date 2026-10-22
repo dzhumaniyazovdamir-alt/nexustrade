@@ -35,6 +35,7 @@ export interface OrganizationDto {
   id: string;
   name: string;
   slug: string;
+  defaultCurrency: string;
   createdAt: string;
 }
 
@@ -62,6 +63,7 @@ export interface RegisterRequest {
   password: string;
   displayName: string;
   organizationName: string;
+  defaultCurrency?: string;
 }
 
 export interface LoginRequest {
@@ -75,10 +77,12 @@ export interface AuthResponse {
 
 export interface CreateOrganizationRequest {
   name: string;
+  defaultCurrency?: string;
 }
 
 export interface UpdateOrganizationRequest {
-  name: string;
+  name?: string;
+  defaultCurrency?: string;
 }
 
 export interface OrganizationsResponse {
@@ -121,4 +125,131 @@ export interface InvitationsResponse {
 
 export interface AcceptInvitationRequest {
   token: string;
+}
+
+export const catalogStatuses = ['active', 'archived'] as const;
+export type CatalogStatus = (typeof catalogStatuses)[number];
+
+export interface CategoryDto {
+  id: string;
+  organizationId: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VariantPriceDto {
+  variantId: string;
+  organizationId: string;
+  amount: string;
+  currency: string;
+  version: number;
+  updatedAt: string;
+}
+
+export interface ProductVariantDto {
+  id: string;
+  organizationId: string;
+  productId: string;
+  sku: string;
+  name: string;
+  attributes: Record<string, string>;
+  status: CatalogStatus;
+  version: number;
+  price: VariantPriceDto | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductSummaryDto {
+  id: string;
+  organizationId: string;
+  categoryId: string | null;
+  name: string;
+  description: string | null;
+  status: CatalogStatus;
+  version: number;
+  variantCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductDetailsDto extends Omit<ProductSummaryDto, 'variantCount'> {
+  variants: ProductVariantDto[];
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  parentId?: string | null;
+}
+
+export interface UpdateCategoryRequest {
+  name?: string;
+  parentId?: string | null;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  description?: string | null;
+  categoryId?: string | null;
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  description?: string | null;
+  categoryId?: string | null;
+  status?: CatalogStatus;
+  version: number;
+}
+
+export interface CreateProductVariantRequest {
+  sku: string;
+  name: string;
+  attributes?: Record<string, string>;
+}
+
+export interface UpdateProductVariantRequest {
+  sku?: string;
+  name?: string;
+  attributes?: Record<string, string>;
+  status?: CatalogStatus;
+  version: number;
+}
+
+export interface SetVariantPriceRequest {
+  amount: string;
+  version?: number;
+}
+
+export interface UpdatePricingCurrencyRequest {
+  currency: string;
+}
+
+export interface CategoriesResponse {
+  categories: CategoryDto[];
+}
+
+export interface CategoryResponse {
+  category: CategoryDto;
+}
+
+export interface ProductsResponse {
+  products: ProductSummaryDto[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface ProductResponse {
+  product: ProductDetailsDto;
+}
+
+export interface ProductVariantResponse {
+  variant: ProductVariantDto;
+}
+
+export interface VariantPriceResponse {
+  price: VariantPriceDto;
 }

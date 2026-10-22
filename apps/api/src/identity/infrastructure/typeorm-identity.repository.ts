@@ -21,6 +21,7 @@ export class TypeOrmIdentityRepository implements IdentityRepository {
     passwordHash: string;
     displayName: string;
     organizationName: string;
+    defaultCurrency?: string;
   }): Promise<{ status: 'created'; user: IdentityUser } | { status: 'email-exists' }> {
     return this.dataSource.transaction(async (manager) => {
       if (await manager.getRepository(UserEntity).existsBy({ email: input.email })) {
@@ -37,6 +38,7 @@ export class TypeOrmIdentityRepository implements IdentityRepository {
         manager.getRepository(OrganizationEntity).create({
           name: input.organizationName,
           slug: await this.uniqueSlug(manager, input.organizationName),
+          defaultCurrency: input.defaultCurrency ?? 'USD',
         }),
       );
       await manager.getRepository(OrganizationMembershipEntity).save(
@@ -66,6 +68,7 @@ export class TypeOrmIdentityRepository implements IdentityRepository {
         'organization.id AS id',
         'organization.name AS name',
         'organization.slug AS slug',
+        'organization.default_currency AS "defaultCurrency"',
         'organization.created_at AS "createdAt"',
       ])
       .where('membership.user_id = :userId', { userId })
@@ -75,6 +78,7 @@ export class TypeOrmIdentityRepository implements IdentityRepository {
         id: string;
         name: string;
         slug: string;
+        defaultCurrency: string;
         createdAt: Date;
       }>();
     return {
@@ -85,6 +89,7 @@ export class TypeOrmIdentityRepository implements IdentityRepository {
           id: row.id,
           name: row.name,
           slug: row.slug,
+          defaultCurrency: row.defaultCurrency,
           createdAt: new Date(row.createdAt).toISOString(),
         },
       })),

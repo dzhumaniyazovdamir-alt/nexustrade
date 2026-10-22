@@ -1,0 +1,276 @@
+<header class="page-header">
+  <p class="eyebrow">Catalog & Pricing</p>
+  <h1>Каталог · {{ organizationContext.activeOrganization()?.name }}</h1>
+  <p>Категории, товары, варианты SKU и текущие цены организации.</p>
+</header>
+
+@if (error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<div class="catalog-layout">
+  <aside>
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>Категории</mat-card-title></mat-card-header>
+      <mat-card-content>
+        @if (organizationContext.canManage()) {
+          <form class="stack" [formGroup]="categoryForm" (ngSubmit)="createCategory()">
+            <mat-form-field>
+              <mat-label>Название</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Родительская категория</mat-label>
+              <mat-select formControlName="parentId">
+                <mat-option value="">Корневая</mat-option>
+                @for (category of categories(); track category.id) {
+                  <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="categoryForm.invalid">
+              Добавить категорию
+            </button>
+          </form>
+          <form class="stack" [formGroup]="categoryRenameForm" (ngSubmit)="renameCategory()">
+            <mat-form-field>
+              <mat-label>Категория для переименования</mat-label>
+              <mat-select formControlName="categoryId">
+                @for (category of categories(); track category.id) {
+                  <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Новое название</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <button mat-stroked-button type="submit" [disabled]="categoryRenameForm.invalid">
+              Переименовать
+            </button>
+          </form>
+        }
+        <ul class="category-list">
+          @for (category of categories(); track category.id) {
+            <li>
+              <span>{{ category.name }}</span>
+              @if (organizationContext.canManage()) {
+                <button mat-button type="button" (click)="deleteCategory(category.id)">
+                  Удалить
+                </button>
+              }
+            </li>
+          } @empty {
+            <li>Категорий пока нет</li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    @if (organizationContext.canManage()) {
+      <mat-card appearance="outlined">
+        <mat-card-header><mat-card-title>Валюта</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <form class="stack" [formGroup]="currencyForm" (ngSubmit)="updateCurrency()">
+            <mat-form-field>
+              <mat-label>ISO 4217</mat-label>
+              <input matInput maxlength="3" formControlName="currency" />
+            </mat-form-field>
+            <button mat-stroked-button type="submit" [disabled]="currencyForm.invalid">
+              Изменить до первой цены
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    }
+  </aside>
+
+  <section class="products">
+    <mat-card appearance="outlined">
+      <mat-card-header><mat-card-title>Товары</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <form class="filters" [formGroup]="searchForm" (ngSubmit)="reloadProducts(1)">
+          <mat-form-field>
+            <mat-label>Поиск</mat-label>
+            <input matInput formControlName="search" />
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Категория</mat-label>
+            <mat-select formControlName="categoryId">
+              <mat-option value="">Все</mat-option>
+              @for (category of categories(); track category.id) {
+                <mat-option [value]="category.id">{{ category.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Статус</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">Все</mat-option>
+              <mat-option value="active">active</mat-option>
+              <mat-option value="archived">archived</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-stroked-button type="submit">Применить</button>
+        </form>
+
+        @if (organizationContext.canManage()) {
+          <form class="filters" [formGroup]="productForm" (ngSubmit)="createProduct()">
+            <mat-form-field>
+              <mat-label>Название товара</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Описание</mat-label>
+              <input matInput formControlName="description" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Категория</mat-label>
+              <mat-select formControlName="categoryId">
+                <mat-option value="">Без категории</mat-option>
+                @for (category of categories(); track category.id) {
+                  <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="productForm.invalid">
+              Создать товар
+            </button>
+          </form>
+        }
+
+        @if (loading()) {
+          <p aria-live="polite">Загрузка…</p>
+        } @else {
+          <div class="product-list">
+            @for (product of products(); track product.id) {
+              <button type="button" class="product-row" (click)="selectProduct(product.id)">
+                <strong>{{ product.name }}</strong>
+                <span>{{ product.status }} · вариантов: {{ product.variantCount }}</span>
+              </button>
+            } @empty {
+              <p>Товары не найдены.</p>
+            }
+          </div>
+        }
+        <div class="pagination">
+          <button
+            mat-button
+            type="button"
+            [disabled]="page() === 1"
+            (click)="reloadProducts(page() - 1)"
+          >
+            Назад
+          </button>
+          <span>Страница {{ page() }} · всего {{ total() }}</span>
+          <button
+            mat-button
+            type="button"
+            [disabled]="page() * 20 >= total()"
+            (click)="reloadProducts(page() + 1)"
+          >
+            Далее
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    @if (selectedProduct(); as product) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>{{ product.name }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ product.description || 'Без описания' }}</p>
+          <p>Статус: {{ product.status }} · версия {{ product.version }}</p>
+          @if (organizationContext.canManage()) {
+            <form class="filters" [formGroup]="productEditForm" (ngSubmit)="updateProduct()">
+              <mat-form-field>
+                <mat-label>Название товара</mat-label>
+                <input matInput formControlName="name" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Описание товара</mat-label>
+                <input matInput formControlName="description" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Категория товара</mat-label>
+                <mat-select formControlName="categoryId">
+                  <mat-option value="">Без категории</mat-option>
+                  @for (category of categories(); track category.id) {
+                    <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <button mat-stroked-button type="submit" [disabled]="productEditForm.invalid">
+                Сохранить товар
+              </button>
+            </form>
+            <button mat-stroked-button type="button" (click)="archiveProduct()">
+              {{ product.status === 'active' ? 'Архивировать' : 'Восстановить' }}
+            </button>
+            <form class="filters" [formGroup]="variantForm" (ngSubmit)="createVariant()">
+              <mat-form-field>
+                <mat-label>SKU</mat-label>
+                <input matInput formControlName="sku" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Название варианта</mat-label>
+                <input matInput formControlName="name" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Атрибуты JSON</mat-label>
+                <input matInput formControlName="attributes" />
+              </mat-form-field>
+              <button mat-flat-button type="submit" [disabled]="variantForm.invalid">
+                Добавить вариант
+              </button>
+            </form>
+          }
+          <div class="variant-list">
+            @for (variant of product.variants; track variant.id) {
+              <div class="variant-row">
+                <button type="button" class="product-row" (click)="selectVariant(variant.id)">
+                  <strong>{{ variant.sku }} · {{ variant.name }}</strong>
+                  <span>{{ variant.status }}</span>
+                </button>
+                @if (organizationContext.canManage()) {
+                  <button mat-button type="button" (click)="archiveVariant(variant.id)">
+                    {{ variant.status === 'active' ? 'Архивировать' : 'Восстановить' }}
+                  </button>
+                }
+              </div>
+            } @empty {
+              <p>Вариантов пока нет.</p>
+            }
+          </div>
+
+          @if (selectedVariantId(); as variantId) {
+            <section class="price-editor" aria-labelledby="price-heading">
+              <h3 id="price-heading">Текущая цена</h3>
+              @if (selectedPrice(); as price) {
+                <p>{{ price.amount }} {{ price.currency }}</p>
+              } @else {
+                <p>Цена не задана.</p>
+              }
+              @if (organizationContext.canManage()) {
+                <form class="inline" [formGroup]="priceForm" (ngSubmit)="setPrice()">
+                  <mat-form-field>
+                    <mat-label>Amount</mat-label>
+                    <input matInput inputmode="decimal" formControlName="amount" />
+                  </mat-form-field>
+                  <button mat-flat-button type="submit" [disabled]="priceForm.invalid">
+                    Сохранить цену
+                  </button>
+                  @if (selectedPrice()) {
+                    <button mat-button type="button" (click)="deletePrice()">Удалить цену</button>
+                  }
+                </form>
+              }
+            </section>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </section>
+</div>

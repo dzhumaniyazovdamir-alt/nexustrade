@@ -17,6 +17,9 @@ export class OrganizationEntity {
   @Column({ type: 'varchar', length: 180, unique: true })
   slug!: string;
 
+  @Column({ type: 'char', length: 3, default: 'USD' })
+  defaultCurrency!: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

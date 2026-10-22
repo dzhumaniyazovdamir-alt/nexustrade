@@ -35,6 +35,7 @@ export class IdentityService {
     password: string;
     displayName: string;
     organizationName: string;
+    defaultCurrency?: string;
   }): Promise<{ session: SessionDto; tokens: TokenPair }> {
     const passwordHash = await this.passwordHasher.hash(
       input.password,
@@ -45,6 +46,7 @@ export class IdentityService {
       passwordHash,
       displayName: input.displayName,
       organizationName: input.organizationName,
+      defaultCurrency: input.defaultCurrency,
     });
     if (registration.status === 'email-exists') {
       throw new ConflictException({

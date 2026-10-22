@@ -26,6 +26,7 @@ export interface IdentityRepository {
     passwordHash: string;
     displayName: string;
     organizationName: string;
+    defaultCurrency?: string;
   }): Promise<{ status: 'created'; user: IdentityUser } | { status: 'email-exists' }>;
   findUserByEmail(email: string): Promise<IdentityUser | null>;
   getSession(userId: string): Promise<SessionDto>;

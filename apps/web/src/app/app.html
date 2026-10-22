@@ -4,6 +4,9 @@
   <nav aria-label="Основная навигация">
     <a mat-button routerLink="/">Статус</a>
     <a mat-button routerLink="/organizations">Организации</a>
+    @if (organizationContext.activeOrganizationId(); as organizationId) {
+    <a mat-button [routerLink]="['/organizations', organizationId, 'catalog']">Каталог</a>
+    }
   </nav>
   <span class="toolbar-spacer"></span>
   <span class="user-name">{{ auth.user()?.displayName }}</span>

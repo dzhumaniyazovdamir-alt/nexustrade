@@ -28,8 +28,8 @@ export class OrganizationsService {
     return this.repository.listForUser(userId);
   }
 
-  async create(userId: string, name: string): Promise<OrganizationDto> {
-    return this.repository.create(userId, name);
+  async create(userId: string, name: string, defaultCurrency?: string): Promise<OrganizationDto> {
+    return this.repository.create(userId, name, defaultCurrency);
   }
 
   async get(organizationId: string): Promise<OrganizationDto> {

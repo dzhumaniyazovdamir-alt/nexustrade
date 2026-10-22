@@ -37,6 +37,13 @@ export const appRoutes: Route[] = [
     title: 'Организации | NexusTrade',
   },
   {
+    path: 'organizations/:organizationId/catalog',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/catalog/catalog.component').then((module) => module.CatalogComponent),
+    title: 'Каталог | NexusTrade',
+  },
+  {
     path: 'invite/:token',
     canActivate: [authGuard],
     loadComponent: () =>

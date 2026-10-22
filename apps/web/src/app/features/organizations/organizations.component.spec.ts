@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
 import { OrganizationsApiService } from '../../core/organizations/organizations-api.service';
@@ -9,6 +10,7 @@ describe('OrganizationsComponent', () => {
     id: 'organization-1',
     name: 'Organization',
     slug: 'organization',
+    defaultCurrency: 'USD',
     createdAt: new Date().toISOString(),
     role: 'owner' as const,
   };
@@ -26,7 +28,13 @@ describe('OrganizationsComponent', () => {
     update: vi.fn(() => of({ organization: { ...organization, name: 'Renamed' } })),
     revokeInvitation: vi.fn(() => of(undefined)),
   };
-  const auth = { refreshSession: vi.fn(() => of({ session: null })) };
+  const auth = {
+    session: signal({
+      user: { id: 'user-1', email: 'owner@example.com', displayName: 'Owner' },
+      memberships: [{ organization, role: 'owner' as const }],
+    }),
+    refreshSession: vi.fn(() => of({ session: null })),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();

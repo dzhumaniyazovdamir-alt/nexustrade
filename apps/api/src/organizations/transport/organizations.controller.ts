@@ -46,7 +46,13 @@ export class OrganizationsController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: CreateOrganizationDto,
   ): Promise<OrganizationResponse> {
-    return { organization: await this.organizationsService.create(user.userId, body.name) };
+    return {
+      organization: await this.organizationsService.create(
+        user.userId,
+        body.name,
+        body.defaultCurrency,
+      ),
+    };
   }
 
   @Post('invitations/accept')

@@ -7,13 +7,18 @@ import type {
   UpdateOrganizationRequest,
 } from '@nexustrade/contracts';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsIn, IsString, IsUUID, Length } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, IsUUID, Length, Matches } from 'class-validator';
 
 export class CreateOrganizationDto implements CreateOrganizationRequest {
   @IsString()
   @Length(2, 160)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   name!: string;
+
+  @IsOptional()
+  @Matches(/^[A-Z]{3}$/)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  defaultCurrency?: string;
 }
 
 export class UpdateOrganizationDto implements UpdateOrganizationRequest {

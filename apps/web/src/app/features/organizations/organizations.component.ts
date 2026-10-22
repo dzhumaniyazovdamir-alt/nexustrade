@@ -23,6 +23,7 @@ import type {
 } from '@nexustrade/contracts';
 import { firstValueFrom } from 'rxjs';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
+import { OrganizationContextService } from '../../core/organizations/organization-context.service';
 import { OrganizationsApiService } from '../../core/organizations/organizations-api.service';
 
 type OrganizationWithRole = OrganizationDto & { role: OrganizationRole };
@@ -45,8 +46,9 @@ type OrganizationWithRole = OrganizationDto & { role: OrganizationRole };
 export class OrganizationsComponent implements OnInit {
   private readonly api = inject(OrganizationsApiService);
   private readonly auth = inject(AuthSessionService);
+  private readonly organizationContext = inject(OrganizationContextService);
   readonly organizations = signal<OrganizationWithRole[]>([]);
-  readonly activeOrganizationId = signal<string | null>(null);
+  readonly activeOrganizationId = this.organizationContext.activeOrganizationId;
   readonly members = signal<MembershipDto[]>([]);
   readonly invitationLink = signal<string | null>(null);
   readonly invitations = signal<InvitationDto[]>([]);
@@ -54,9 +56,7 @@ export class OrganizationsComponent implements OnInit {
   readonly activeOrganization = computed(() =>
     this.organizations().find((organization) => organization.id === this.activeOrganizationId()),
   );
-  readonly canManage = computed(() =>
-    ['owner', 'admin'].includes(this.activeOrganization()?.role ?? 'member'),
-  );
+  readonly canManage = this.organizationContext.canManage;
   readonly isOwner = computed(() => this.activeOrganization()?.role === 'owner');
 
   readonly createForm = new FormGroup({
@@ -84,7 +84,7 @@ export class OrganizationsComponent implements OnInit {
   }
 
   async selectOrganization(organizationId: string): Promise<void> {
-    this.activeOrganizationId.set(organizationId);
+    if (!this.organizationContext.select(organizationId)) return;
     this.invitationLink.set(null);
     this.renameForm.setValue({ name: this.activeOrganization()?.name ?? '' });
     await this.reloadOrganizationData();
@@ -173,7 +173,7 @@ export class OrganizationsComponent implements OnInit {
       this.organizations.set(response.organizations);
       const organizationId =
         preferredId ?? this.activeOrganizationId() ?? response.organizations[0]?.id ?? null;
-      this.activeOrganizationId.set(organizationId);
+      if (organizationId) this.organizationContext.select(organizationId);
       this.renameForm.setValue({ name: this.activeOrganization()?.name ?? '' });
       if (organizationId) await this.reloadOrganizationData();
     } catch (error) {

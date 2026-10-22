@@ -10,7 +10,11 @@ erDiagram
     ORGANIZATION ||--o{ ORGANIZATION_INVITATION : invites
     ORGANIZATION ||--o{ WAREHOUSE : owns
     ORGANIZATION ||--o{ PRODUCT : owns
+    ORGANIZATION ||--o{ PRODUCT_CATEGORY : owns
+    PRODUCT_CATEGORY ||--o{ PRODUCT_CATEGORY : contains
+    PRODUCT_CATEGORY ||--o{ PRODUCT : classifies
     PRODUCT ||--o{ PRODUCT_VARIANT : contains
+    PRODUCT_VARIANT ||--o| VARIANT_PRICE : priced_as
     WAREHOUSE ||--o{ STOCK_ITEM : stores
     PRODUCT_VARIANT ||--o{ STOCK_ITEM : stocked_as
     ORGANIZATION ||--o{ SALES_ORDER : receives
@@ -30,6 +34,18 @@ erDiagram
 - Soft delete применяется только там, где восстановление или история имеют продуктовую ценность.
 - Исторические и audit-записи append-only; изменение бизнес-статуса сохраняется отдельно от текущего snapshot.
 - Внешние ключи и поведение `ON DELETE` задаются явно.
+
+## Catalog и Pricing MVP
+
+- `organizations.default_currency` хранит одну ISO 4217 валюту организации; существующие записи
+  получают `USD`. Валюта изменяется только до появления первой цены.
+- `product_categories` образуют tenant-scoped дерево через nullable `parent_id`. Slug уникален
+  среди siblings одной организации.
+- `products` принадлежат организации и опционально категории. `product_variants` принадлежат
+  товару, а SKU уникален в пределах организации.
+- Products и variants используют статус `active | archived` и optimistic `version`.
+- `variant_prices` содержит не более одной текущей цены варианта. `amount` хранится как
+  `numeric(19,4)` и передаётся через API строкой; currency берётся из организации.
 
 ## Индексы и конкурентность
 

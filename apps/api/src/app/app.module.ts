@@ -5,10 +5,12 @@ import { validateApiEnvironment } from '@nexustrade/config';
 import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
+import { CatalogModule } from '../catalog/catalog.module';
 import { DatabaseModule } from '../database/database.module';
 import { HealthModule } from '../health/health.module';
 import { IdentityModule } from '../identity/identity.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { PricingModule } from '../pricing/pricing.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
     HealthModule,
     IdentityModule,
     OrganizationsModule,
+    CatalogModule,
+    PricingModule,
   ],
   providers: [
     {

@@ -27,6 +27,7 @@ export class TypeOrmOrganizationsRepository implements OrganizationsRepository {
         'organization.id AS id',
         'organization.name AS name',
         'organization.slug AS slug',
+        'organization.default_currency AS "defaultCurrency"',
         'organization.created_at AS "createdAt"',
       ])
       .where('membership.user_id = :userId', { userId })
@@ -35,12 +36,13 @@ export class TypeOrmOrganizationsRepository implements OrganizationsRepository {
     return rows.map((row) => ({ ...row, createdAt: new Date(row.createdAt).toISOString() }));
   }
 
-  async create(userId: string, name: string): Promise<OrganizationDto> {
+  async create(userId: string, name: string, defaultCurrency = 'USD'): Promise<OrganizationDto> {
     return this.dataSource.transaction(async (manager) => {
       const organization = await manager.getRepository(OrganizationEntity).save(
         manager.getRepository(OrganizationEntity).create({
           name,
           slug: await this.uniqueSlug(manager, name),
+          defaultCurrency,
         }),
       );
       await manager.getRepository(OrganizationMembershipEntity).save(
@@ -259,6 +261,7 @@ export class TypeOrmOrganizationsRepository implements OrganizationsRepository {
       id: entity.id,
       name: entity.name,
       slug: entity.slug,
+      defaultCurrency: entity.defaultCurrency,
       createdAt: entity.createdAt.toISOString(),
     };
   }

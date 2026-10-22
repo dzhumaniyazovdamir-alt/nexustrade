@@ -27,5 +27,6 @@ import { OrganizationsController } from './transport/organizations.controller';
     OrganizationAccessGuard,
     { provide: ORGANIZATIONS_REPOSITORY, useClass: TypeOrmOrganizationsRepository },
   ],
+  exports: [OrganizationAccessGuard],
 })
 export class OrganizationsModule {}

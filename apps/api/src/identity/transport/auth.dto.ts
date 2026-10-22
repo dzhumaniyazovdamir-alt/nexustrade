@@ -1,6 +1,14 @@
 import type { LoginRequest, RegisterRequest } from '@nexustrade/contracts';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterDto implements RegisterRequest {
   @IsEmail()
@@ -24,6 +32,11 @@ export class RegisterDto implements RegisterRequest {
   @Length(2, 160)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   organizationName!: string;
+
+  @IsOptional()
+  @Matches(/^[A-Z]{3}$/)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  defaultCurrency?: string;
 }
 
 export class LoginDto implements LoginRequest {

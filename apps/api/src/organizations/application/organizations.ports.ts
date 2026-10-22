@@ -9,7 +9,7 @@ export const ORGANIZATIONS_REPOSITORY = Symbol('ORGANIZATIONS_REPOSITORY');
 
 export interface OrganizationsRepository {
   listForUser(userId: string): Promise<Array<OrganizationDto & { role: OrganizationRole }>>;
-  create(userId: string, name: string): Promise<OrganizationDto>;
+  create(userId: string, name: string, defaultCurrency?: string): Promise<OrganizationDto>;
   get(organizationId: string): Promise<OrganizationDto | null>;
   update(organizationId: string, name: string): Promise<OrganizationDto | null>;
   listMembers(organizationId: string): Promise<MembershipDto[]>;

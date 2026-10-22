@@ -29,7 +29,10 @@ NexusTrade — учебная multi-tenant B2B-платформа управле
 - `apps/api` — NestJS API; transport, common infrastructure, database и health-модули.
 - `apps/api/src/identity` — регистрация, cookie sessions и refresh token families.
 - `apps/api/src/organizations` — tenants, memberships, RBAC и одноразовые invitations.
-- `apps/web` — standalone zoneless Angular-приложение с auth guards и Organizations UI.
+- `apps/api/src/catalog` — tenant-scoped категории, товары, варианты SKU и optimistic locking.
+- `apps/api/src/pricing` — одна текущая цена варианта и валютная политика организации.
+- `apps/web` — standalone zoneless Angular-приложение с auth guards, общим organization context,
+  Organizations UI и Catalog/Pricing UI.
 - `libs/shared/contracts` — transport-контракты без runtime-зависимостей от приложений.
 - `libs/shared/config` — типизированная валидация общей конфигурации.
 - `docs/adr` — принятые архитектурные решения.
@@ -37,7 +40,10 @@ NexusTrade — учебная multi-tenant B2B-платформа управле
 
 Направление зависимостей внутри backend: `transport → application → domain`; infrastructure реализует порты. Приложения могут зависеть от `scope:shared`, shared-библиотеки не зависят от приложений.
 
-Application services получают persistence через DI-токены `IDENTITY_REPOSITORY` и `ORGANIZATIONS_REPOSITORY`. `DataSource`, TypeORM entities, queries, locks и транзакции разрешены только в `infrastructure/*` adapters.
+Application services получают persistence через DI-токены `IDENTITY_REPOSITORY`,
+`ORGANIZATIONS_REPOSITORY`, `CATALOG_REPOSITORY` и `PRICING_REPOSITORY`. Catalog экспортирует
+узкий `CATALOG_VARIANT_READER` для Pricing. `DataSource`, TypeORM entities, queries, locks и
+транзакции разрешены только в `infrastructure/*` adapters.
 
 ## Команды
 
@@ -65,7 +71,8 @@ pnpm db:migration:run
 pnpm db:migration:revert
 ```
 
-`synchronize` запрещён. Первая migration `IdentityOrganizations` создаёт схему Identity/Organizations.
+`synchronize` запрещён. Migration `IdentityOrganizations` создаёт схему Identity/Organizations,
+`CatalogPricing` — категории, товары, варианты, текущие цены и валюту организации.
 
 Перед integration-тестами на чистой БД выполните `pnpm db:migration:run`.
 
@@ -78,6 +85,18 @@ pnpm db:migration:revert
 - Angular interceptor дедуплицирует параллельный refresh после `401` и один раз повторяет исходные non-auth запросы.
 - Invitation token одноразовый, ограничен по времени и хранится только как hash; owner/admin видят и могут отзывать активные invitations. SMTP пока не подключён.
 - State-changing запросы с auth cookies принимаются только с `WEB_ORIGIN`.
+
+## Catalog и Pricing
+
+- Все Catalog/Pricing routes содержат `organizationId` и защищены актуальной membership из
+  PostgreSQL. `member` читает, `owner | admin` изменяют данные.
+- Категории образуют tenant-scoped дерево без циклов; category slug уникален среди siblings.
+- SKU нормализуется в uppercase и уникален в организации. Products и variants используют
+  `active | archived` и optimistic `version`.
+- Цена варианта хранится как `numeric(19,4)` и передаётся через API decimal-строкой.
+- Организация имеет одну `defaultCurrency` ISO 4217 (`USD` по умолчанию); после первой цены
+  изменение валюты запрещено.
+- Price lists, история цен, discounts/taxes, multi-currency, outbox и RabbitMQ остаются вне MVP.
 
 ## Локальная инфраструктура
 
